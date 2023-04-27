@@ -12,7 +12,7 @@ class Article {
 class ArticleScreen extends StatelessWidget {
   final Article article;
 
-  ArticleScreen({required this.article});
+  const ArticleScreen({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {

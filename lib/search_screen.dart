@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'article_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed/webfeed.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'dart:async';
 
 class Article {
@@ -18,8 +16,10 @@ class Article {
 }
 
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key});
+
   @override
-  _SearchScreenState createState() => _SearchScreenState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
@@ -41,7 +41,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> fetchArticles() async {
-    final searchUrl = 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en';
+    const searchUrl = 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en';
     final response = await http.get(Uri.parse(searchUrl));
     final feed = RssFeed.parse(response.body);
     final List<Article> fetchedArticles = [];
@@ -69,11 +69,11 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       appBar: AppBar(
         title: TextField(
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'Search Articles...',
             hintStyle: TextStyle(color: Colors.white),
           ),
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
           onChanged: (query) {
             setState(() {
               searchQuery = query;
@@ -92,14 +92,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   searchResults[index].imageUrl, // access imageUrl property
                   fit: BoxFit.cover,
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 Text(
                   searchResults[index].title,
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 Text(
                   searchResults[index].description,
-                  style: TextStyle(fontSize: 16.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
               ],
             ),

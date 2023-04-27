@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AddFeedScreen extends StatefulWidget {
+  const AddFeedScreen({super.key});
+
 @override
 State<AddFeedScreen> createState() => _AddFeedScreenState();
 }
@@ -22,7 +24,7 @@ Navigator.pop(context);
 Widget build(BuildContext context) {
 return Scaffold(
 appBar: AppBar(
-title: Text('Add Custom Feed'),
+title: const Text('Add Custom Feed'),
 ),
 body: Form(
 key: _formKey,
@@ -30,7 +32,7 @@ child: Column(
 crossAxisAlignment: CrossAxisAlignment.start,
 children: [
 TextFormField(
-decoration: InputDecoration(
+decoration: const InputDecoration(
 labelText: 'Feed URL',
 ),
 validator: (value) {
@@ -43,12 +45,12 @@ onChanged: (value) {
 feedUrl = value;
 },
 ),
-SizedBox(height: 16.0),
+const SizedBox(height: 16.0),
 ElevatedButton(
 onPressed: () {
 saveFeed();
 },
-child: Text('Save'),
+child: const Text('Save'),
 ),
 ],
 ),
