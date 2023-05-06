@@ -5,6 +5,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed/webfeed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() {
   runApp(const MyApp());
@@ -37,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
   // List of default RSS feed URLs
   final List<String> _defaultRssUrls = ['https://cointelegraph.com/rss/category/market-analysis',    'https://cointelegraph.com/rss/category/top-10-cryptocurrencies', 'https://www.coindesk.com/arc/outboundfeeds/rss/', 'https://bitcoinmagazine.com/.rss/full/' ];
 
-
   Future<List<RssItem>?> _fetchRss(String url) async {
     try {
       final response = await http.get(Uri.parse(url));
@@ -57,15 +57,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Future<void> _loadRss(String url) async {
+  //   final List<RssItem> allItems = [];
+  //   for (final url in _defaultRssUrls) {
+  //     final feedItems = await _fetchRss(url);
+  //     allItems.addAll(feedItems!);
+  //   }
+  //   allItems.shuffle();
+  //   setState(() {
+  //     _feedItems = allItems;
+  //   });
+  // }
   Future<void> _loadRss(String url) async {
-    final List<RssItem> allItems = [];
-    for (final url in _defaultRssUrls) {
-      final feedItems = await _fetchRss(url);
-      allItems.addAll(feedItems!);
-    }
-    allItems.shuffle();
+    final feedItems = await _fetchRss(url);
+    final itemsWithImages = feedItems!.where((item) => item.enclosure?.url != null).toList();
+    itemsWithImages.sort((a, b) => b.pubDate!.difference(a.pubDate!).inMinutes);
     setState(() {
-      _feedItems = allItems;
+      _feedItems.addAll(itemsWithImages);
     });
   }
 
@@ -104,7 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   void _openWebView(String url) {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) {
       return Scaffold(
@@ -128,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+        appBar: AppBar(
         title: const Text('News App'),
       ),
       body: Column(
@@ -151,21 +158,81 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: _feedItems.length,
               itemBuilder: (context, index) {
                 final item = _feedItems[index];
-                return ListTile(
-                  title: Text(item.title ?? ''),
-                  subtitle: Text(item.pubDate?.toString() ?? ''),
+                return GestureDetector(
                   onTap: () {
                     _selectedUrl = item.link!;
                     _openWebView(_selectedUrl);
                   },
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                Uri.parse(item.link!).host,
+                                style: const TextStyle(fontSize: 12.0),
+                              ),
+                              const SizedBox(width: 8.0),
+                              Text(
+                                timeago.format(item.pubDate ?? DateTime.now()),
+                                style: const TextStyle(fontSize: 12.0),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            item.title ?? '',
+                            style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8.0),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (item.enclosure?.url != null)
+                                Image.network(
+                                  item.enclosure!.url!,
+                                  height: 100.0,
+                                  width: 100.0,
+                                  fit: BoxFit.cover,
+                                ),
+                              const SizedBox(width: 8.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Text(
+                                    //   Uri.parse(item.link!).host,
+                                    //   style: const TextStyle(fontSize: 12.0),
+                                    // ),
+                                    // const SizedBox(height: 4.0),
+                                    Text(
+                                      item.description ?? '',
+                                      maxLines: 4 ,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+
                 );
               },
             ),
           ),
 
-
         ],
-      ),
+    ),
     );
   }
+
+
 }
