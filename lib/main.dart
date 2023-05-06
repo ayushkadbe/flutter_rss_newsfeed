@@ -34,6 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
   late String _selectedUrl;
   final TextEditingController _controller = TextEditingController();
 
+  // List of default RSS feed URLs
+  final List<String> _defaultRssUrls = ['https://cointelegraph.com/rss/category/market-analysis',    'https://cointelegraph.com/rss/category/top-10-cryptocurrencies', 'https://www.coindesk.com/arc/outboundfeeds/rss/', 'https://bitcoinmagazine.com/.rss/full/' ];
+
+
   Future<List<RssItem>?> _fetchRss(String url) async {
     try {
       final response = await http.get(Uri.parse(url));
@@ -53,12 +57,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   Future<void> _loadRss(String url) async {
-    final feedItems = await _fetchRss(url);
+    final List<RssItem> allItems = [];
+    for (final url in _defaultRssUrls) {
+      final feedItems = await _fetchRss(url);
+      allItems.addAll(feedItems!);
+    }
+    allItems.shuffle();
     setState(() {
-      _feedItems = feedItems!;
+      _feedItems = allItems;
     });
+  }
+
+
+  Future<void> _loadDefaultRss() async {
+    for (final url in _defaultRssUrls) {
+      await _loadRss(url);
+    }
   }
 
   Future<void> _loadCustomRss() async {
@@ -106,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRss('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml');
+    _loadDefaultRss();
     _loadCustomRss();
   }
 
@@ -146,8 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-
           ),
+
 
         ],
       ),
