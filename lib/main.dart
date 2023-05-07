@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:webfeed/webfeed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html/style.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _controller = TextEditingController();
 
   // List of default RSS feed URLs
-  final List<String> _defaultRssUrls = ['https://cointelegraph.com/rss/category/market-analysis',    'https://cointelegraph.com/rss/category/top-10-cryptocurrencies', 'https://www.coindesk.com/arc/outboundfeeds/rss/', 'https://bitcoinmagazine.com/.rss/full/' ];
+  final List<String> _defaultRssUrls = ['https://cointelegraph.com/rss/category/top-10-cryptocurrencies', 'https://www.coindesk.com/arc/outboundfeeds/rss/', 'https://bitcoinmagazine.com/.rss/full/' ];
 
   Future<List<RssItem>?> _fetchRss(String url) async {
     try {
@@ -68,15 +70,38 @@ class _HomeScreenState extends State<HomeScreen> {
   //     _feedItems = allItems;
   //   });
   // }
+  // Future<void> _loadRss(String url) async {
+  //   final feedItems = await _fetchRss(url);
+  //   setState(() {
+  //     _feedItems = feedItems!;
+  //   });
+  // }
+  // Future<void> _loadRss(String url) async {
+  //   final feedItems = await _fetchRss(url);
+  //   final itemsWithImages = feedItems!.where((item) => item.enclosure?.url != null).toList();
+  //   itemsWithImages.sort((a, b) => b.pubDate!.difference(a.pubDate!).inMinutes);
+  //   setState(() {
+  //     _feedItems.addAll(itemsWithImages);
+  //   });
+  // }
   Future<void> _loadRss(String url) async {
-    final feedItems = await _fetchRss(url);
-    final itemsWithImages = feedItems!.where((item) => item.enclosure?.url != null).toList();
-    itemsWithImages.sort((a, b) => b.pubDate!.difference(a.pubDate!).inMinutes);
+    final List<RssItem> allItems = [];
+    for (final url in _defaultRssUrls) {
+      final feedItems = await _fetchRss(url);
+      if (feedItems != null) {
+        for (final item in feedItems) {
+          if (item.enclosure?.url != null) { // only add items with images
+            allItems.add(item);
+          }
+        }
+      }
+    }
+    allItems.shuffle();
+    allItems.sort((a, b) => b.pubDate!.difference(a.pubDate!).inMinutes);
     setState(() {
-      _feedItems.addAll(itemsWithImages);
+      _feedItems = allItems;
     });
   }
-
 
   Future<void> _loadDefaultRss() async {
     for (final url in _defaultRssUrls) {
@@ -200,22 +225,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               const SizedBox(width: 8.0),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Text(
-                                    //   Uri.parse(item.link!).host,
-                                    //   style: const TextStyle(fontSize: 12.0),
-                                    // ),
-                                    // const SizedBox(height: 4.0),
-                                    Text(
-                                      item.description ?? '',
-                                      maxLines: 4 ,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                                child: LimitedBox(
+                                  maxHeight: 80.0,
+                                  child: Html(
+                                    data: item.content?.value ?? '',
+                                    style: {
+                                      'html': Style(
+                                        fontSize: const FontSize(14.0),
+                                      ),
+                                    },
+                                    // onLinkTap: (url, _, __, ___) {
+                                    //   launch(url);
+                                    // },
+                                  ),
                                 ),
                               ),
+
+
                             ],
                           ),
                         ],
